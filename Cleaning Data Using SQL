@@ -45,7 +45,6 @@ SELECT
   *
 FROM
   `my-project-378602.Cars.Cars_info`
-
 WHERE 
    num_of_doors IS NULL
   
