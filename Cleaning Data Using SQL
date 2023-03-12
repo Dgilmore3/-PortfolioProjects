@@ -1,145 +1,63 @@
--- Checking to see is the two fuel types match the data description
-
-SELECT 
- DISTINCT fuel_type
+-- Checking if the two fuel types match the data description
+SELECT DISTINCT fuel_type
 FROM `my-project-378602.Cars.Cars_info`
 
--- Verify that the dataset's minimum and maximum lengths correspond to those in the data description.
-
+-- Verifying that the dataset's minimum and maximum lengths correspond to those in the data description.
 SELECT   
-MIN(length) AS min_length,   
-MAX(length) AS max_length 
+  MIN(length) AS min_length,   
+  MAX(length) AS max_length 
 FROM
-`my-project-378602.Cars.Cars_info`
+  `my-project-378602.Cars.Cars_info`
 
--- checking if there is missing data 
-
+-- Checking for missing data 
 SELECT *
 FROM `my-project-378602.Cars.Cars_info`
-WHERE make IS NULL
+WHERE make IS NULL OR body_style IS NULL OR drive_wheels IS NULL OR num_of_doors IS NULL
 
-SELECT *
-FROM `my-project-378602.Cars.Cars_info`
-WHERE body_style IS NULL
+-- Updating missing data in num_of_doors column
+UPDATE `my-project-378602.Cars.Cars_info`
+SET num_of_doors = CASE
+  WHEN make = "dodge" AND fuel_type = "gas" AND body_style = "sedan"
+  THEN "four"
+  WHEN make = "mazda" AND fuel_type = "diesel" AND body_style = "sedan"
+  THEN "four"
+  ELSE num_of_doors
+END
 
-SELECT *
-FROM `my-project-378602.Cars.Cars_info`
-WHERE drive_wheels IS NULL
-
+-- Checking if num_of_doors was updated correctly
 SELECT *
 FROM `my-project-378602.Cars.Cars_info`
 WHERE num_of_doors IS NULL
 
--- found two instances of missing data in this column
-
+-- Correcting misspelled value in num_of_cylinders column
 UPDATE `my-project-378602.Cars.Cars_info`
-SET num_of_doors = CASE
-WHEN make = "dodge" AND fuel_type = "gas" AND body_style = "sedan"
-THEN "four"
-ELSE num_of_doors
-END
+SET num_of_cylinders = "two"
+WHERE num_of_cylinders = "tow"
 
--- checking to see if it was updated 
+-- Checking if num_of_cylinders was corrected correctly
+SELECT DISTINCT num_of_cylinders
+FROM `my-project-378602.Cars.Cars_info`
 
-SELECT
-  *
-FROM
-  `my-project-378602.Cars.Cars_info`
-WHERE 
-   num_of_doors IS NULL
-  
--- Fixing second instance of missing data
-
-UPDATE `my-project-378602.Cars.Cars_info`
-SET num_of_doors = CASE
-WHEN make = "mazda" AND fuel_type = "diesel" AND body_style = "sedan"
-THEN "four"
-ELSE num_of_doors
-END
-
-  
--- Checking for other errors
-
-SELECT
-  DISTINCT num_of_cylinders
-FROM
-  `my-project-378602.Cars.Cars_info`
-  
--- the two in row 7 are misspelled; correct the error. 
-
-UPDATE
-  `my-project-378602.Cars.Cars_info`
-SET
-  num_of_cylinders = "two"
-WHERE
-  num_of_cylinders = "tow"
-  
--- See if it worked
-
-SELECT
-  DISTINCT num_of_cylinders
-FROM
-  `my-project-378602.Cars.Cars_info`
-  
--- checking to see if the compression_ratio column values range from 7 to 23
-
+-- Checking if the compression_ratio column values range from 7 to 23
 SELECT
   MIN(compression_ratio) AS min_compression_ratio,
   MAX(compression_ratio) AS max_compression_ratio
 FROM
   `my-project-378602.Cars.Cars_info`
 
-
--- Returns a maximum of 70. should be 23, not 70 based on the data description 
-
-SELECT
-  MIN(compression_ratio) AS min_compression_ratio,
-  MAX(compression_ratio) AS max_compression_ratio
-FROM
-  (SELECT compression_ratio
-   FROM `my-project-378602.Cars.Cars_info`
-   WHERE compression_ratio <> 70) subquery
-  
--- Shows highest value is 23, which aligns with the data description. 
-
-SELECT
- COUNT(*) AS 
-   num_of_rows_to_delete
-FROM
-  `my-project-378602.Cars.Cars_info`
-WHERE
-   compression_ratio = 70
-   
--- Turns out there is only one row with the erroneous 70 value.
--- Deleting row
-
-DELETE `my-project-378602.Cars.Cars_info`
-
+-- Correcting erroneous value in compression_ratio column
+DELETE FROM `my-project-378602.Cars.Cars_info`
 WHERE compression_ratio = 70
- 
--- The greatest value right now is 23, which fits with how the data is described. 
 
-SELECT
-  DISTINCT drive_wheels
-FROM
-  `my-project-378602.Cars.Cars_info`
-  
--- 4wd appears twice in the results. Probably means that one of the 4WD entries is different from the other 4WD entries because it has an extra space. 
+-- Checking if row with erroneous value was deleted
+SELECT COUNT(*) AS num_of_rows_deleted
+FROM `my-project-378602.Cars.Cars_info`
+WHERE compression_ratio = 70
 
-SELECT
-  DISTINCT drive_wheels,
-  LENGTH(drive_wheels) AS string_length
-FROM
-  `my-project-378602.Cars.Cars_info`
-  
--- These findings show that some 4wd string instances have four characters instead of the anticipated three (4wd has 3 characters). 
-UPDATE 
-my-project-378602.Cars.Cars_info
-SET drive_wheels = RTRIM(drive_wheels);
+-- Correcting extra space in drive_wheels column
+UPDATE `my-project-378602.Cars.Cars_info`
+SET drive_wheels = RTRIM(drive_wheels)
 
--- Making sure that there are only three distinct values in the drive_wheels column:
-
- SELECT
-  DISTINCT drive_wheels
-FROM
-  `my-project-378602.Cars.Cars_info`
+-- Checking if there are only three distinct values in the drive_wheels column
+SELECT DISTINCT drive_wheels
+FROM `my-project-378602.Cars.Cars_info`
